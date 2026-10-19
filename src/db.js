@@ -38,6 +38,13 @@ export async function initializeDatabase() {
     if (/^(CREATE DATABASE|USE)\b/i.test(statement)) continue;
     await db.query(statement);
   }
+  for (const [column, definition] of [
+    ['can_create_org', 'TINYINT(1) NOT NULL DEFAULT 0'],
+    ['can_create_folders', 'TINYINT(1) NOT NULL DEFAULT 0'],
+  ]) {
+    const [found] = await db.execute('SELECT 1 FROM information_schema.columns WHERE table_schema=? AND table_name=? AND column_name=?', [databaseName, 'users', column]);
+    if (!found.length) await db.query(`ALTER TABLE users ADD COLUMN ${column} ${definition}`);
+  }
   const [admins] = await db.execute('SELECT 1 FROM users WHERE role=? LIMIT 1', ['admin']);
   if (!admins.length) {
     const email = process.env.ADMIN_EMAIL || 'admin@example.com';

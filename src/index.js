@@ -8,6 +8,7 @@ import { auth, adminOnly } from './access.js';
 import authRoutes from './routes/auth.js';
 import workspace from './routes/workspace.js';
 import admin from './routes/admin.js';
+import manage from './routes/manage.js';
 
 const app = express();
 const allowedOrigins = (process.env.FRONTEND_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean);
@@ -17,6 +18,7 @@ app.use(express.json({ limit: '1mb' }));
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/workspace', auth, workspace);
+app.use('/api/admin/manage', auth, manage);
 app.use('/api/admin', auth, adminOnly, admin);
 app.use('/api', (req, res) => res.status(404).json({ error: 'Endpoint not found.' }));
 

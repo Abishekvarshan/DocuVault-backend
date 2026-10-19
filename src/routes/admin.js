@@ -29,11 +29,13 @@ r.patch('/users/:id', asyncHandler(async (req, res) => {
   const u = await one('SELECT * FROM users WHERE id=?', [req.params.id]);
   if (!u) return res.status(404).json({ error: 'User not found.' });
   const { name = u.name, role = u.role, active = !!u.active, password } = req.body || {};
+  const canCreateOrg = role === 'staff' ? !!(req.body?.canCreateOrg ?? u.can_create_org) : false;
+  const canCreateFolders = role === 'staff' ? !!(req.body?.canCreateFolders ?? u.can_create_folders) : false;
   if (!need(res, ROLES.includes(role), 'Unknown role.')) return;
   if (u.id === req.user.id && (role !== 'admin' || !active)) return res.status(400).json({ error: 'You cannot demote or disable your own account.' });
   if (password && password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
-  await db.execute('UPDATE users SET name=?, role=?, active=?, password_hash=? WHERE id=?',
-    [name.trim(), role, active ? 1 : 0, password ? bcrypt.hashSync(password, 10) : u.password_hash, u.id]);
+  await db.execute('UPDATE users SET name=?, role=?, active=?, can_create_org=?, can_create_folders=?, password_hash=? WHERE id=?',
+    [name.trim(), role, active ? 1 : 0, canCreateOrg ? 1 : 0, canCreateFolders ? 1 : 0, password ? bcrypt.hashSync(password, 10) : u.password_hash, u.id]);
   res.json({ user: publicUser(await one('SELECT * FROM users WHERE id=?', [u.id])) });
 }));
 r.delete('/users/:id', asyncHandler(async (req, res) => {

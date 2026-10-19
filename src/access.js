@@ -6,7 +6,10 @@ export const ALL_PERMS = ['view', 'download', 'upload', 'edit', 'move', 'delete'
 const CUSTOMER_PERMS = ['view', 'download']; // customers are read-only by design
 
 export const signToken = (u) => jwt.sign({ id: u.id }, SECRET, { expiresIn: '7d' });
-export const publicUser = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, active: !!u.active });
+export const publicUser = (u) => ({
+  id: u.id, name: u.name, email: u.email, role: u.role, active: !!u.active,
+  canCreateOrg: !!u.can_create_org, canCreateFolders: !!u.can_create_folders,
+});
 
 export async function auth(req, res, next) {
   const h = req.headers.authorization;
